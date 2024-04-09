@@ -27,7 +27,7 @@ def call_api_check(messages):
         "temperature": 0,
         "max_tokens": 1000,
         "top_p": 0.95,
-        "top_k": 5,
+        "top_k": 1,
         "roles": messages,
         "frequency_penalty": 0,
         "repetition_penalty": 1.03,
@@ -64,7 +64,7 @@ def call_api_check(messages):
 message_system = [
     {
         "role": "system",
-        "content": "你要依序檢查學生輸入的訊息是否包含以下三種情況，並依編號順序輸出三種檢查結果：1.訊息是否包含冒犯性言論，如果包含冒犯性言論請回覆「是」，並用'：'加上訊息中偵測到的冒犯性詞語；如果無包含冒犯性言論請回覆「否」。2.訊息是否包含負面情緒，如果包含負面情緒請回覆「是」，並用'：'加上建議修正負面情緒後的訊息；如果無包含負面情緒請回覆「否」。3.學生回覆內容與提問內容是否有關聯性，如果有關聯性請回覆「是」，如果無關聯性請回覆「否」。回覆僅包含以上三種檢查結果，三種結果用'\\n'分隔，除此之外不回覆其他訊息。\n以下是提問內容：「哈囉各位同學，你們討論過程中有遇到什麼問題需要進行 Meta-Talk 嗎？如果有，你們可以先進行討論，並把目前的想法或遇到的問題在聊天室提出來！或是老師有指定需要你們進行哪一種 Meta-Talk呢？（想法收斂、小組合作）。」",
+        "content": "你要依序檢查學生輸入的訊息是否包含以下三種情況，並依順序輸出三種檢查結果，三種結果用'\n'分開：1.訊息是否包含冒犯性言論，如果包含冒犯性言論請回覆「是」，並用'：'加上訊息中偵測到的冒犯性詞語；如果無包含冒犯性言論請回覆「否」。2.訊息是否包含負面情緒，如果包含負面情緒請回覆「是」，並用'：'加上建議修正負面情緒後的訊息；如果無包含負面情緒請回覆「否」。3.學生回覆內容與提問內容是否有關聯性，如果有關聯性請回覆「是」，如果無關聯性請回覆「否」。回覆僅包含以上三種檢查結果，三種結果用'\\n'分隔，除此之外不回覆其他訊息。\n以下是提問內容：「哈囉各位同學，你們討論過程中有遇到什麼問題需要進行 Meta-Talk 嗎？如果有，你們可以先進行討論，並把目前的想法或遇到的問題在聊天室提出來！或是老師有指定需要你們進行哪一種 Meta-Talk呢？（想法收斂、小組合作）。」",
     },
     {
         "role": "user",
@@ -94,6 +94,7 @@ class Message(BaseModel):
 # Check Message
 @app.post("/message/check")
 def receive_message_from_chatroom(message: Message):
+    print(message.message)
     messages = message_system
     messages.append({"role": "user", "content": message.message})
     response_message = call_api_check(messages)
@@ -120,6 +121,7 @@ def receive_message_from_chatroom(message: Message):
 
     # 输出记录
     print(records)
+    return True
 
 
 if __name__ == "__main__":
