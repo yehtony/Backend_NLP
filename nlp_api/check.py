@@ -109,19 +109,22 @@ def receive_message_from_chatroom(message: Message):
     lines = response_message.strip().split("\n")
 
     # 创建一个空列表，用于存储字典
-    records = []
+    check_result = []
     # 遍历每一行数据
     for line in lines:
         # 使用冒号（：）分割每一行数据
         parts = line.split("：")
-        if len(parts) == 2:
-            records.append({"result": parts[0], "content": parts[1]})
+        if parts[0] == "是":
+            parts[0] = True
         else:
-            records.append({"result": line, "content": ""})
-
-    # 输出记录
-    print(records)
-    return True
+            parts[0] = False
+        if len(parts) == 2:
+            check_result.append({"result": parts[0], "content": parts[1]})
+        else:
+            check_result.append({"result": parts[0], "content": ""})
+    check_result[2]["result"] = not check_result[2]["result"]
+    print(check_result)
+    return check_result
 
 
 if __name__ == "__main__":
