@@ -23,7 +23,7 @@ api_url = "http://ml.hsueh.tw/callapi/"
 # Call API
 def call_api_check(messages):
     payload = {
-        "engine": "gpt-35-turbo-16k",
+        "engine": "taiwan-llama",
         "temperature": 0,
         "max_tokens": 1000,
         "top_p": 0.95,
