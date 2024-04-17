@@ -67,20 +67,14 @@ message_system = [
         "content": "你要依序檢查學生輸入的訊息是否包含以下三種情況，並依順序輸出三種檢查結果，三種結果用'\n'分開：1.訊息是否包含冒犯性言論，如果包含冒犯性言論請回覆「是」，並用'：'加上訊息中偵測到的冒犯性詞語；如果無包含冒犯性言論請回覆「否」。2.訊息是否包含負面情緒，如果包含負面情緒請回覆「是」，並用'：'加上建議修正負面情緒後的訊息；如果無包含負面情緒請回覆「否」。3.學生回覆內容與提問內容是否有關聯性，如果有關聯性請回覆「是」，如果無關聯性請回覆「否」。回覆僅包含以上三種檢查結果，三種結果用'\\n'分隔，除此之外不回覆其他訊息。",
     },
     {
-        "role": "assistant",
-        "content": "提問：看來你們在想法發散上遇到了一些問題，我想請你們先進行小組討論，摘要出你們目前對於探究題目所提出的想法，並且在聊天室提出你們摘要後的想法。",
-    },
-    {
         "role": "user",
-        "content": "學生回覆：我有點失望，感覺我們這組就是在浪費時間，討論根本就是一團糟。一群廢物都沒在做事情，好像討論都不關他們的事情一樣！ ",
+        "content": "提問內容：哈囉各位同學，你們討論過程中有遇到什麼問題需要進行 Meta-Talk 嗎？如果有，你們可以先進行討論，並把目前的想法或遇到的問題在聊天室提出來！學生回覆內容：我有點失望，感覺我們這組就是在浪費時間，討論根本就是一團糟。一群廢物都沒在做事情，好像討論都不關他們的事情一樣！",
     },
     {
         "role": "assistant",
         "content": "是：廢物。\n是：我有些感到挫折，因為我們這組的討論進展得很緩慢，我們似乎無法有效地達成共識。\n是",
     },
 ]
-
-message_list = message_system
 
 # message_assistant = [
 #     {
@@ -98,18 +92,18 @@ class Message(BaseModel):
 # Check Message
 @app.post("/message/check")
 def receive_message_from_chatroom(message: Message):
-    messages_frontend = message.message
-    print(messages_frontend)
-    messages = message_list
+    message = message.message
+    messages = message_system.copy()
     messages.extend(
         [
-            {"role": "assistant", "content": "提問：" + messages_frontend[0]},
-            {"role": "user", "content": "學生回覆：" + messages_frontend[1]},
+            {
+                "role": "user",
+                "content": "提問內容: " + message[0] + "學生回覆: " + message[1],
+            },
         ]
     )
-
+    print(messages)
     response_message = call_api_check(messages)
-    print(response_message)
     # print(response_message)
 
     # # Return Message to Frontend
