@@ -21,7 +21,7 @@ api_url = "http://ml.hsueh.tw/callapi/"
 
 
 # Call API
-def call_api_check(messages):
+def call_api_nlp(messages):
     payload = {
         "engine": "gpt-35-turbo-16k",
         "temperature": 0,
@@ -51,17 +51,8 @@ def call_api_check(messages):
     return reply
 
 
-# # System Background
-# message_system = [
-#     {
-#         "role": "system",
-#         "content": f"你要依序檢查學生輸入的訊息是否包含以下三種情況，並依編號順序輸出三種檢查結果：1.訊息是否包含冒犯性言論，如果包含冒犯性言論請回覆「是」，並加上訊息中偵測到的冒犯性詞語；如果無包含冒犯性言論請回覆「否」。2.訊息是否包含負面情緒，如果包含負面情緒請回覆「是」，並用加上可修正成的相似正面訊息；如果無包含負面情緒請回覆「否」。3.學生回覆內容與提問內容是否有關聯性，如果有關聯性請回覆「是」，如果無關聯性請回覆「否」。回覆僅包含以上三種檢查結果，除此之外不回覆其他訊息。",
-#     }
-# ]
-
-
 # System Background
-message_system = [
+message_system_check = [
     {
         "role": "system",
         "content": "你要依序檢查學生輸入的訊息是否包含以下三種情況，並依順序輸出三種檢查結果，三種結果用'\n'分開：1.訊息是否包含冒犯性言論，如果包含冒犯性言論請回覆「是」，並用'：'加上訊息中偵測到的冒犯性詞語；如果無包含冒犯性言論請回覆「否」。2.訊息是否包含負面情緒，如果包含負面情緒請回覆「是」，並用'：'加上建議修正負面情緒後的訊息；如果無包含負面情緒請回覆「否」。3.學生回覆內容與提問內容是否有關聯性，如果有關聯性請回覆「是」，如果無關聯性請回覆「否」。回覆僅包含以上三種檢查結果，三種結果用'\\n'分隔，除此之外不回覆其他訊息。",
@@ -76,13 +67,13 @@ message_system = [
     },
 ]
 
-# message_assistant = [
-#     {
-#         "role": "assistant",
-#         "content": f"哈囉各位同學，你們討論過程中有遇到什麼問題需要進行 Meta-Talk 嗎？如果有，你們可以先進行討論，並把目前的想法或遇到的問題在聊天室提出來！或是老師有指定需要你們進行哪一種 Meta-Talk呢？（想法收斂、小組合作）",
-#     }
-# ]
-# message_question_00 = "提問內容：「哈囉各位同學，你們討論過程中有遇到什麼問題需要進行 Meta-Talk 嗎？如果有，你們可以先進行討論，並把目前的想法或遇到的問題在聊天室提出來！或是老師有指定需要你們進行哪一種 Meta-Talk呢？（想法收斂、小組合作）。」\n"
+# System Background
+message_system_summarize = [
+    {
+        "role": "system",
+        "content": "你會接收到使用者在自然科學探究課程中的小組討論內容，你要對討論內容進行摘要，僅進行摘要動作，並且僅摘要與自然科學有關的內容，切記不要對使用者的內容提出任何的評論與想法，回覆不要帶有人稱主詞，回覆長度在100字以內。",
+    },
+]
 
 
 class Message(BaseModel):
@@ -90,10 +81,10 @@ class Message(BaseModel):
 
 
 # Check Message
-@app.post("/message/check")
+@app.post("/nlp/message/check")
 def receive_message_from_chatroom(message: Message):
     message = message.message
-    messages = message_system.copy()
+    messages = message_system_check.copy()
     messages.extend(
         [
             {
@@ -103,14 +94,7 @@ def receive_message_from_chatroom(message: Message):
         ]
     )
     print(messages)
-    response_message = call_api_check(messages)
-    # print(response_message)
-
-    # # Return Message to Frontend
-    # if response_message == "是":
-    #     return False
-    # else:
-    #     return True
+    response_message = call_api_nlp(messages)
 
     lines = response_message.strip().split("\n")
 
@@ -131,6 +115,63 @@ def receive_message_from_chatroom(message: Message):
     check_result[2]["result"] = not check_result[2]["result"]
     print(check_result)
     return check_result
+
+
+# Summarize IdeaWall
+@app.post("/nlp/idea/summarize")
+def group_idea_summarize(message: Message):
+    message = message.message
+    response_message = ""
+    messages = message_system_summarize.copy()
+    message_split = [message[i : i + 20] for i in range(0, len(message), 20)]
+    # print(message_split)
+    message_split_string = ["\n".join(group) for group in message_split]
+    print(message_split_string)
+    for i, group in enumerate(message_split_string):
+        print(group)
+        messages.extend(
+            [
+                {
+                    "role": "user",
+                    "content": group,
+                },
+            ]
+        )
+        response_message = response_message + call_api_nlp(messages)
+        # print(response_message)
+        messages.pop()
+
+    print(response_message)
+    return response_message
+    # messages.extend(
+    #     [
+    #         {
+    #             "role": "user",
+    #             "content": "提問內容: " + message[0] + "學生回覆: " + message[1],
+    #         },
+    #     ]
+    # )
+    # response_message = call_api_check(messages)
+
+    # lines = response_message.strip().split("\n")
+
+    # # 创建一个空列表，用于存储字典
+    # check_result = []
+    # # 遍历每一行数据
+    # for line in lines:
+    #     # 使用冒号（：）分割每一行数据
+    #     parts = line.split("：")
+    #     if parts[0] == "是":
+    #         parts[0] = True
+    #     else:
+    #         parts[0] = False
+    #     if len(parts) == 2:
+    #         check_result.append({"result": parts[0], "content": parts[1]})
+    #     else:
+    #         check_result.append({"result": parts[0], "content": ""})
+    # check_result[2]["result"] = not check_result[2]["result"]
+    # print(check_result)
+    # return check_result
 
 
 if __name__ == "__main__":
