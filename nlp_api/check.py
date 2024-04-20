@@ -55,15 +55,15 @@ def call_api_nlp(messages):
 message_system_check = [
     {
         "role": "system",
-        "content": "你要依序檢查學生輸入的訊息是否包含以下三種情況，並依順序輸出三種檢查結果，三種結果用'\n'分開：1.訊息是否包含冒犯性言論，如果包含冒犯性言論請回覆「是」，並用'：'加上訊息中偵測到的冒犯性詞語；如果無包含冒犯性言論請回覆「否」。2.訊息是否包含負面情緒，如果包含負面情緒請回覆「是」，並用'：'加上建議修正負面情緒後的訊息；如果無包含負面情緒請回覆「否」。3.學生回覆內容與提問內容是否有關聯性，如果有關聯性請回覆「是」，如果無關聯性請回覆「否」。回覆僅包含以上三種檢查結果，三種結果用'\\n'分隔，除此之外不回覆其他訊息。",
+        "content": "你要依序檢查學生回覆的內容是否包含以下三種情況，並依順序輸出三種檢查結果：1.訊息是否包含不禮貌言論，如果包含不禮貌言論請回覆「是」，並用'：'加上訊息中偵測到的不禮貌詞語；如果無包含不禮貌言論請回覆「否」。2.訊息是否包含負面情緒，如果包含負面情緒請回覆「是」，並用'：'加上建議修正負面情緒後的訊息；如果無包含負面情緒請回覆「否」。3.學生回覆內容與提問內容是否有關聯性，如果有關聯性請回覆「是」，如果無關聯性請回覆「否」。回覆僅包含以上三種檢查結果，三種結果用'\n'分隔，除此之外不回覆其他訊息。",
     },
     {
         "role": "user",
-        "content": "提問內容：哈囉各位同學，你們討論過程中有遇到什麼問題需要進行 Meta-Talk 嗎？如果有，你們可以先進行討論，並把目前的想法或遇到的問題在聊天室提出來！學生回覆內容：我有點失望，感覺我們這組就是在浪費時間，討論根本就是一團糟。一群廢物都沒在做事情，好像討論都不關他們的事情一樣！",
+        "content": "提問內容：你們可以先行討論，並把目前的想法或遇到的問題在聊天室提出來！學生回覆內容：幹！我有點失望，感覺我們這組就是在浪費時間，討論根本就是一團糟。一群廢物都沒在做事情，好像討論都不關他們的事情一樣！",
     },
     {
         "role": "assistant",
-        "content": "是：廢物。\n是：我有些感到挫折，因為我們這組的討論進展得很緩慢，我們似乎無法有效地達成共識。\n是",
+        "content": "是：廢物\n是：我有些感到挫折，因為我們這組的討論進展得很緩慢，我們似乎無法有效地達成共識\n是",
     },
 ]
 
@@ -71,7 +71,7 @@ message_system_check = [
 message_system_summarize = [
     {
         "role": "system",
-        "content": "你會接收到使用者在自然科學探究課程中的小組討論內容，你要對討論內容進行摘要，僅進行摘要動作，並且僅摘要與自然科學有關的內容，切記不要對使用者的內容提出任何的評論與想法，回覆不要帶有人稱主詞，回覆長度在100字以內。",
+        "content": "你會接收到學生在自然科學探究課程中的小組討論內容，你的工作是對討論內容進行摘要，摘要出三個以內的重點並用數字分行列點，僅進行摘要動作，並且僅摘要與自然科學有關的內容，切記不要對使用者的討論內容提出任何評論、糾正、回覆、想法猜測，回覆不要帶有人稱主詞，回覆字數在75字以內。",
     },
 ]
 
@@ -89,12 +89,13 @@ def receive_message_from_chatroom(message: Message):
         [
             {
                 "role": "user",
-                "content": "提問內容: " + message[0] + "學生回覆: " + message[1],
+                "content": "提問內容: " + message[0] + "學生回覆內容: " + message[1],
             },
         ]
     )
     print(messages)
     response_message = call_api_nlp(messages)
+    print(response_message)
 
     lines = response_message.strip().split("\n")
 
@@ -140,7 +141,16 @@ def group_idea_summarize(message: Message):
         response_message = response_message + call_api_nlp(messages)
         # print(response_message)
         messages.pop()
-
+    messages.extend(
+        [
+            {
+                "role": "user",
+                "content": response_message,
+            },
+        ]
+    )
+    response_message = call_api_nlp(messages).replace(" ", "")
+    response_message = response_message.replace("\n", "\\n")
     print(response_message)
     return response_message
     # messages.extend(
