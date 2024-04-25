@@ -23,7 +23,7 @@ api_url = "http://ml.hsueh.tw/callapi/"
 # Call API
 def call_api_nlp(messages):
     payload = {
-        "engine": "gpt-35-turbo-16k",
+        "engine": "llama-3",
         "temperature": 0,
         "max_tokens": 1000,
         "top_p": 0.95,
@@ -83,37 +83,42 @@ class Message(BaseModel):
 # Check Message
 @app.post("/nlp/message/check")
 def receive_message_from_chatroom(message: Message):
-    message = message.message
-    messages = message_system_check.copy()
-    messages.extend(
-        [
-            {
-                "role": "user",
-                "content": "提問內容: " + message[0] + "學生回覆內容: " + message[1],
-            },
-        ]
-    )
-    print(messages)
-    response_message = call_api_nlp(messages)
-    print(response_message)
+    # message = message.message
+    # messages = message_system_check.copy()
+    # messages.extend(
+    #     [
+    #         {
+    #             "role": "user",
+    #             "content": "提問內容: " + message[0] + "學生回覆內容: " + message[1],
+    #         },
+    #     ]
+    # )
+    # print(messages)
+    # response_message = call_api_nlp(messages)
+    # print(response_message)
 
-    lines = response_message.strip().split("\n")
+    # lines = response_message.strip().split("\n")
 
-    # 创建一个空列表，用于存储字典
-    check_result = []
-    # 遍历每一行数据
-    for line in lines:
-        # 使用冒号（：）分割每一行数据
-        parts = line.split("：")
-        if parts[0] == "是":
-            parts[0] = True
-        else:
-            parts[0] = False
-        if len(parts) == 2:
-            check_result.append({"result": parts[0], "content": parts[1]})
-        else:
-            check_result.append({"result": parts[0], "content": ""})
-    check_result[2]["result"] = not check_result[2]["result"]
+    # # 创建一个空列表，用于存储字典
+    # check_result = []
+    # # 遍历每一行数据
+    # for line in lines:
+    #     # 使用冒号（：）分割每一行数据
+    #     parts = line.split("：")
+    #     if parts[0] == "是":
+    #         parts[0] = False
+    #     else:
+    #         parts[0] = True
+    #     if len(parts) == 2:
+    #         check_result.append({"result": parts[0], "content": parts[1]})
+    #     else:
+    #         check_result.append({"result": parts[0], "content": ""})
+    # check_result[2]["result"] = not check_result[2]["result"]
+    check_result = [
+        {"result": True, "content": ""},
+        {"result": True, "content": ""},
+        {"result": True, "content": ""},
+    ]
     print(check_result)
     return check_result
 
@@ -121,36 +126,37 @@ def receive_message_from_chatroom(message: Message):
 # Summarize IdeaWall
 @app.post("/nlp/idea/summarize")
 def group_idea_summarize(message: Message):
-    message = message.message
-    response_message = ""
-    messages = message_system_summarize.copy()
-    message_split = [message[i : i + 20] for i in range(0, len(message), 20)]
-    # print(message_split)
-    message_split_string = ["\n".join(group) for group in message_split]
-    print(message_split_string)
-    for i, group in enumerate(message_split_string):
-        print(group)
-        messages.extend(
-            [
-                {
-                    "role": "user",
-                    "content": group,
-                },
-            ]
-        )
-        response_message = response_message + call_api_nlp(messages)
-        # print(response_message)
-        messages.pop()
-    messages.extend(
-        [
-            {
-                "role": "user",
-                "content": response_message,
-            },
-        ]
-    )
-    response_message = call_api_nlp(messages).replace(" ", "")
-    response_message = response_message.replace("\n", "\\n")
+    # message = message.message
+    # response_message = ""
+    # messages = message_system_summarize.copy()
+    # message_split = [message[i : i + 20] for i in range(0, len(message), 20)]
+    # # print(message_split)
+    # message_split_string = ["\n".join(group) for group in message_split]
+    # print(message_split_string)
+    # for i, group in enumerate(message_split_string):
+    #     print(group)
+    #     messages.extend(
+    #         [
+    #             {
+    #                 "role": "user",
+    #                 "content": group,
+    #             },
+    #         ]
+    #     )
+    #     response_message = response_message + call_api_nlp(messages)
+    #     # print(response_message)
+    #     messages.pop()
+    # messages.extend(
+    #     [
+    #         {
+    #             "role": "user",
+    #             "content": response_message,
+    #         },
+    #     ]
+    # )
+    # response_message = call_api_nlp(messages).replace(" ", "")
+    # response_message = response_message.replace("\n", "\\n")
+    response_message = 'Idea Summarize'
     print(response_message)
     return response_message
     # messages.extend(
