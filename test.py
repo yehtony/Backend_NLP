@@ -1,0 +1,1 @@
+<s> [INST] <<SYS>> {{ system_prompt }} <</SYS>> {{ user_msg_1 }} [/INST] {{ model_answer_1 }} </s> <s> [INST] {{ user_msg_2 }} [/INST] {{ model_answer_2 }} </s>
